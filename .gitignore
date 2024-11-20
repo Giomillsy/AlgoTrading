@@ -1,0 +1,17 @@
+#Ignore everything inside of Docs
+/Docs
+!Docs/README.md
+
+#Typical Python ignores
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+#Enviroment
+.env
+
+#Logging and temp files
+*.log
+*.tmp
