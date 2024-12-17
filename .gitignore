@@ -1,6 +1,7 @@
-#Ignore everything inside of Docs
+#Ignore everything inside of Docs and private info files
 /Docs
 !Docs/README.md
+*.txt
 
 #Typical Python ignores
 __pycache__/

@@ -26,7 +26,12 @@ func getIndex(c *gin.Context) {
 }
 
 func main() {
-	router := gin.Default()
-	router.GET("/getIndex", getIndex)
-	router.Run("localhost:8080")
+
+	api.ApiQuery()
+
+	/*
+		router := gin.Default()
+		router.GET("/getIndex", getIndex)
+		router.Run("localhost:8080")
+	*/
 }
