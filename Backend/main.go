@@ -9,29 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var FTSE100 = api.Index{
-	Name:   "The FTSE 100",
-	Ticker: "FTSE100",
-	Securities: []api.Security{
-		{
-			Name:        "Unilever",
-			Ticker:      "UNI",
-			SystemicRho: 0.25,
-		},
-	},
-}
+func getSec(c *gin.Context) {
 
-func getIndex(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, FTSE100)
+	IBM := api.ApiQuery("IBM")
+	c.IndentedJSON(http.StatusOK, IBM)
 }
 
 func main() {
 
-	api.ApiQuery()
+	router := gin.Default()
+	router.GET("/getSec", getSec)
+	router.Run("localhost:8080")
 
-	/*
-		router := gin.Default()
-		router.GET("/getIndex", getIndex)
-		router.Run("localhost:8080")
-	*/
 }

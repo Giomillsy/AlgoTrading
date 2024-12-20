@@ -1,15 +1,15 @@
 import requests
 
 #Local endpoint
-url = "http://localhost:8080/getIndex"
+url = "http://localhost:8080/getSec"
 
 #Get the response
 response = requests.get(url)
 
 if response.status_code == 200:
     #Print the reponse
-    securities = response.json()
-    print(securities["securities"])
+    print(response.json())
+    
 
 else:
     #Request failed
