@@ -3,7 +3,7 @@
 package main
 
 import (
-	"AlgorithmicTrading/Backend/api"
+	"Backend/api"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
