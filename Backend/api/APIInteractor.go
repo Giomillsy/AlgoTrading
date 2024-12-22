@@ -7,10 +7,10 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strconv"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 // The the structure of the response from the alpha vantage API
@@ -38,7 +38,12 @@ type ApiResponse struct {
 func ApiQuery(secID string) ApiResponse {
 	//Queries Alphavantage
 
-	var k string = readAPIKey()
+	// Reads API key from directory
+	k, err := readAPIKey()
+	if err != nil {
+		log.Fatalf("Error reading API key: %v", err)
+	}
+
 	var secStruct ApiResponse
 
 	qs := []string{
@@ -86,21 +91,22 @@ func alphaQueryGen(qs []string) string {
 
 }
 
-func readAPIKey() string {
+func readAPIKey() (string, error) {
 	//Reads my API key from the text file for alphavantage
 
-	//File Path of the infomation file
-	_, filePath, _, _ := runtime.Caller(0)
-	dir := filepath.Dir(filePath)
-	filePath = fmt.Sprintf("%v/apiKey.txt", dir)
-
-	// Reads the file
-	k, err := os.ReadFile(filePath)
+	// Loads .env file
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error reading file %v: %v", filePath, err)
+		return "", fmt.Errorf("error loading .env file: %v", err)
 	}
 
-	return string(k)
+	// Gets the key from it's enviroment variable
+	k := os.Getenv("ALPHA_VANTAGE_API_KEY")
+	if k == "" {
+		return "", fmt.Errorf("no API key found in .env file: %v", err)
+	}
+
+	return string(k), nil
 
 }
 
