@@ -48,3 +48,26 @@ func TestReadApiKey(t *testing.T) {
 
 	})
 }
+
+func TestAlphaQueryGen(t *testing.T) {
+	// Tests generating a query in the format alpha vantage requires
+
+	t.Run("Testing query generation", func(t *testing.T) {
+
+		want := "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=IBM&outputsize=full&apikey=demo"
+
+		qs := []string{
+			"function=TIME_SERIES_DAILY",
+			"symbol=IBM",
+			"outputsize=full",
+			"apikey=demo",
+		}
+		got := alphaQueryGen(qs)
+
+		if got != want {
+			t.Errorf("got %q want %q", got, want)
+		}
+
+	})
+
+}

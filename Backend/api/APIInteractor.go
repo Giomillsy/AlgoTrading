@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -35,20 +34,44 @@ type ApiResponse struct {
 	TimeSeriesDaily map[string]*DailyData `json:"Time Series (Daily)"`
 }
 
-func ApiQuery(secID string) ApiResponse {
+func ApiQuery(secID string) (ApiResponse, error) {
 	//Queries Alphavantage
 
-	// Reads API key from directory
-	k, err := readAPIKey()
+	response, err := getApiResponse(secID)
 	if err != nil {
-		log.Fatalf("Error reading API key: %v", err)
+		return ApiResponse{}, err
+	}
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return ApiResponse{}, fmt.Errorf("error reading response: %v", err)
 	}
 
+	// Convert body of type []byte to json
 	var secStruct ApiResponse
+	err = json.Unmarshal(body, &secStruct)
+	if err != nil {
+		return ApiResponse{}, fmt.Errorf("error parsing JSON: %w", err)
+	}
+
+	return secStruct, nil
+
+}
+
+func getApiResponse(id string) (*http.Response, error) {
+	// Gets the response from the Alpha Vantage API
+
+	// Reads API key from .env file
+	k, err := readAPIKey()
+	if err != nil {
+
+	}
 
 	qs := []string{
 		"function=TIME_SERIES_DAILY",
-		fmt.Sprintf("symbol=%v", secID),
+		fmt.Sprintf("symbol=%v", id),
 		"outputsize=compact",
 		fmt.Sprintf("apikey=%v", k),
 	}
@@ -58,24 +81,10 @@ func ApiQuery(secID string) ApiResponse {
 	// Gets the response from alphavantage API
 	response, err := http.Get(url)
 	if err != nil {
-		log.Fatalf("Error fetching data: %v", err)
-	}
-	defer response.Body.Close()
-
-	// Read the response body
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		log.Fatalf("Error reading response: %v", err)
+		return nil, fmt.Errorf("error fetching API data: %w", err)
 	}
 
-	// Convert body of type []byte to json
-
-	err = json.Unmarshal(body, &secStruct)
-	if err != nil {
-		log.Fatalf("Error parsing JSON: %v", err)
-	}
-
-	return secStruct
+	return response, nil
 
 }
 
@@ -87,7 +96,8 @@ func alphaQueryGen(qs []string) string {
 		url = fmt.Sprintf("%v%v&", url, q)
 	}
 
-	return url
+	// Removes the unnecsary & at the end
+	return url[:len(url)-1]
 
 }
 

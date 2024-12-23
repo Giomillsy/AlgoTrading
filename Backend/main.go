@@ -4,6 +4,7 @@ package main
 
 import (
 	"Backend/api"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +12,11 @@ import (
 
 func getSec(c *gin.Context) {
 
-	IBM := api.ApiQuery("IBM")
+	IBM, err := api.ApiQuery("IBM")
+	if err != nil {
+		// For now be fatal for the API. Correct later for error handling
+		log.Fatal(err)
+	}
 	c.IndentedJSON(http.StatusOK, IBM)
 }
 
