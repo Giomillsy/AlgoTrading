@@ -1,8 +1,10 @@
 package api
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestReadApiKey(t *testing.T) {
@@ -70,4 +72,128 @@ func TestAlphaQueryGen(t *testing.T) {
 
 	})
 
+}
+func TestMetaDataUnmarshalJSON(t *testing.T) {
+	/*
+		Two different test scenarios
+		Happy path = A normal JSON which is expected
+		Unexpected Parameter = Alpha vantage has a new parameter added to it's json
+	*/
+
+	tests := []struct {
+		name     string
+		jsonData string
+		want     MetaData
+	}{
+		{
+			name: "Happy Path",
+			jsonData: `{
+				"1. Information": "Daily Prices",
+				"2. Symbol": "AAPL",
+				"3. Last Refreshed": "2024-12-21",
+				"4. Output Size": "Compact",
+				"5. Time Zone": "US/Eastern"
+			}`,
+			want: MetaData{
+				Information:   "Daily Prices",
+				Symbol:        "AAPL",
+				LastRefreshed: time.Date(2024, 12, 21, 0, 0, 0, 0, time.UTC),
+				OutputSize:    "Compact",
+				TimeZone:      "US/Eastern",
+			},
+		},
+		{
+			name: "Unexpected Parameter",
+			jsonData: `{
+				"1. Information": "Daily Prices",
+				"2. Symbol": "AAPL",
+				"3. Last Refreshed": "2024-12-21",
+				"4. Output Size": "Compact",
+				"5. Time Zone": "US/Eastern",
+				"6. Unexpected": "Scary"
+			}`,
+			want: MetaData{
+				Information:   "Daily Prices",
+				Symbol:        "AAPL",
+				LastRefreshed: time.Date(2024, 12, 21, 0, 0, 0, 0, time.UTC),
+				OutputSize:    "Compact",
+				TimeZone:      "US/Eastern",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got MetaData
+			err := json.Unmarshal([]byte(tt.jsonData), &got)
+			if err != nil {
+				t.Fatalf("json.Unmarshal() error: %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("json.Unmarshal() got: %v, want: %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDailyDataUnmarshalJSON(t *testing.T) {
+	/*
+		Two different test scenarios
+		Happy path = A normal JSON which is expected
+		Unexpected Parameter = Alpha vantage has a new parameter added to it's json
+	*/
+	tests := []struct {
+		name     string
+		jsonData string
+		want     DailyData
+	}{
+		{
+			name: "Happy Path",
+			jsonData: `{
+				"1. open": "100",
+				"2. high": "200",
+				"3. low": "50",
+				"4. close": "124",
+				"5. volume": "1000"
+			}`,
+			want: DailyData{
+				Open:   100,
+				High:   200,
+				Low:    50,
+				Close:  124,
+				Volume: 1000,
+			},
+		},
+		{
+			name: "Unexpected Parameter",
+			jsonData: `{
+				"1. open": "100",
+				"2. high": "200",
+				"3. low": "50",
+				"4. close": "124",
+				"5. volume": "1000",
+				"6. velocity": "1"
+			}`,
+			want: DailyData{
+				Open:   100,
+				High:   200,
+				Low:    50,
+				Close:  124,
+				Volume: 1000,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got DailyData
+			err := json.Unmarshal([]byte(tt.jsonData), &got)
+			if err != nil {
+				t.Fatalf("json.Unmarshal() error: %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("json.Unmarshal() got: %v, want: %v", got, tt.want)
+			}
+		})
+	}
 }
