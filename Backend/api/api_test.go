@@ -2,10 +2,125 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
+
+func TestApiQuery(t *testing.T) {
+	/*
+		Test cases:
+		- Happy path
+		- Invalid JSON output from API
+		- No response from server
+	*/
+
+	// Test cases
+	tests := []struct {
+		name         string
+		mockResponse string
+		mockStatus   int
+		mockError    error
+		want         ApiResponse
+		wantErr      bool
+	}{
+		{
+			name: "Successful API Response",
+			mockResponse: `{
+                "Meta Data": {
+                    "1. Information": "Daily Prices",
+                    "2. Symbol": "AAPL",
+                    "3. Last Refreshed": "2024-12-21",
+                    "4. Output Size": "Compact",
+                    "5. Time Zone": "US/Eastern"
+                },
+                "Time Series (Daily)": {
+                    "2024-12-21": {
+                        "1. open": "100",
+                        "2. high": "200",
+                        "3. low": "50",
+                        "4. close": "124",
+                        "5. volume": "1000"
+                    }
+                }
+            }`,
+			mockStatus: http.StatusOK,
+			mockError:  nil,
+			want: ApiResponse{
+				MetaData: MetaData{
+					Information:   "Daily Prices",
+					Symbol:        "AAPL",
+					LastRefreshed: time.Date(2024, 12, 21, 0, 0, 0, 0, time.UTC),
+					OutputSize:    "Compact",
+					TimeZone:      "US/Eastern",
+				},
+				TimeSeriesDaily: map[string]*DailyData{
+					"2024-12-21": {
+						Open:   100,
+						High:   200,
+						Low:    50,
+						Close:  124,
+						Volume: 1000,
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:         "Invalid JSON Response",
+			mockResponse: `{"invalid": "json}`,
+			mockStatus:   http.StatusOK,
+			mockError:    nil,
+			want:         ApiResponse{},
+			wantErr:      true,
+		},
+		{
+			name:         "Network Error",
+			mockResponse: "",
+			mockStatus:   0,
+			mockError:    fmt.Errorf("network error"),
+			want:         ApiResponse{},
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// Mock the getApiResponse
+			getApiResponse = func(secID string) (*http.Response, error) {
+
+				// APIresponse threw an error
+				if tt.mockError != nil {
+					return nil, tt.mockError
+				}
+
+				// APIReponse didn't throw an error
+				return &http.Response{
+					StatusCode: tt.mockStatus,
+					Body:       io.NopCloser(strings.NewReader(tt.mockResponse)),
+				}, nil // No error
+			}
+
+			// Call ApiQuery
+			got, err := ApiQuery("AAPL")
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ApiQuery() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			// Validate the entire struct
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ApiQuery() got = %+v, want = %+v", got, tt.want)
+			}
+		})
+	}
+
+}
 
 func TestReadApiKey(t *testing.T) {
 	//  Tests readApiKey in API code

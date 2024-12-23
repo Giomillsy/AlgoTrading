@@ -60,7 +60,7 @@ func ApiQuery(secID string) (ApiResponse, error) {
 
 }
 
-func getApiResponse(id string) (*http.Response, error) {
+var getApiResponse = func(id string) (*http.Response, error) {
 	// Gets the response from the Alpha Vantage API
 
 	// Reads API key from .env file
