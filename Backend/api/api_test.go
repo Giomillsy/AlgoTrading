@@ -93,7 +93,7 @@ func TestApiQuery(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// Mock the getApiResponse
-			getApiResponse = func(secID string) (*http.Response, error) {
+			getApiResponse = func(_ string) (*http.Response, error) {
 
 				// APIresponse threw an error
 				if tt.mockError != nil {
